@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>БизРадио · твой музыкальный центр</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #0a0f1a 0%, #0c1320 100%);
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            color: #eef5ff;
+        }
+
+        /* главный контейнер */
+        .radio-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px 20px 32px;
+        }
+
+        /* шапка */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            margin-bottom: 32px;
+            border-bottom: 2px solid #2a3a55;
+            padding-bottom: 16px;
+        }
+        .logo h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #e0e8ff, #8ab2f0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+        }
+        .logo p {
+            font-size: 0.8rem;
+            color: #8a9dc0;
+            margin-top: 4px;
+        }
+        .status-area {
+            background: #101a28;
+            padding: 8px 20px;
+            border-radius: 60px;
+            font-size: 0.8rem;
+            border: 1px solid #2a3f55;
+        }
+
+        /* плеер (кастомный) */
+        .player-card {
+            background: #0f1825;
+            border-radius: 48px;
+            padding: 24px 28px;
+            margin-bottom: 36px;
+            border: 1px solid #253a50;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.5);
+        }
+        .now-playing {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .track-info h3 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .track-info p {
+            color: #90a5cc;
+            font-size: 0.85rem;
+        }
+        .cover-placeholder {
+            background: #1e2a3a;
+            width: 70px;
+            height: 70px;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        /* кастомные кнопки управления */
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            margin: 24px 0 18px;
+        }
+        .ctrl-btn {
+            background: #1e2f42;
+            border: none;
+            width: 56px;
+            height: 56px;
+            border-radius: 40px;
+            color: white;
+            font-size: 1.6rem;
+            cursor: pointer;
+            transition: 0.1s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .ctrl-btn:hover {
+            background: #2e4a6e;
+            transform: scale(1.02);
+        }
+        .ctrl-btn.play-pause {
+            background: #2f6b9e;
+            width: 70px;
+            height: 70px;
+            font-size: 2rem;
+        }
+        .progress-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .time-current, .time-duration {
+            font-family: monospace;
+            font-size: 0.8rem;
+            background: #07111e;
+            padding: 4px 10px;
+            border-radius: 30px;
+        }
+        .progress-bar {
+            flex: 1;
+            height: 6px;
+            background: #2a3f55;
+            border-radius: 10px;
+            cursor: pointer;
+            position: relative;
+        }
+        .progress-filled {
+            width: 0%;
+            height: 6px;
+            background: #6ea8fe;
+            border-radius: 10px;
+            transition: width 0.05s linear;
+        }
+        .volume-slider {
+            width: 100px;
+            background: #2a3f55;
+            height: 4px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        /* плейлисты (папки) */
+        .playlists-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+        .playlist-category {
+            background: #0b1320;
+            border-radius: 32px;
+            padding: 18px 20px;
+            border: 1px solid #1f3142;
+        }
+        .category-header {
+            display: flex;
+            align-items: baseline;
+            gap: 16px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            border-left: 4px solid #6ea8fe;
+            padding-left: 14px;
+        }
+        .category-name {
+            font-size: 1.6rem;
+            font-weight: 600;
+        }
+        .track-count {
+            font-size: 0.75rem;
+            color: #7d96b5;
+        }
+        .track-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .track-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #101a28;
+            padding: 10px 16px;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: 0.08s linear;
+            border: 1px solid #1e3144;
+        }
+        .track-item:hover {
+            background: #1f2e40;
+            border-color: #4e7eb3;
+        }
+        .track-title {
+            font-weight: 500;
+        }
+        .track-meta {
+            font-size: 0.7rem;
+            color: #7d93b5;
+        }
+        .badge-folder {
+            background: #1f344a;
+            padding: 2px 10px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+        }
+        footer {
+            text-align: center;
+            margin-top: 48px;
+            font-size: 0.7rem;
+            color: #4f6585;
+            border-top: 1px solid #192a3a;
+            padding-top: 24px;
+        }
+        button {
+            background: none;
+            border: none;
+        }
+        @media (max-width: 700px) {
+            .player-card { padding: 18px; }
+            .ctrl-btn { width: 45px; height: 45px; font-size: 1.2rem; }
+            .ctrl-btn.play-pause { width: 58px; height: 58px; }
+            .category-name { font-size: 1.2rem; }
+        }
+        .refresh-btn {
+            background: #1f344a;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            margin-left: 16px;
+        }
+    </style>
+</head>
+<body>
+<div class="radio-container">
+    <div class="header">
+        <div class="logo">
+            <h1>БизРадио</h1>
+            <p>твой музыкальный архив · загружай mp3 в папки</p>
+        </div>
+        <div class="status-area" id="statusMessage">
+            🎵 сканирую папку /music ...
+        </div>
+    </div>
+
+    <!-- кастомный плеер -->
+    <div class="player-card">
+        <div class="now-playing">
+            <div class="track-info">
+                <h3 id="currentTrackName">—</h3>
+                <p id="currentFolderName">выбери трек</p>
+            </div>
+            <div class="cover-placeholder">🎧</div>
+        </div>
+
+        <div class="controls">
+            <button class="ctrl-btn" id="prevBtn" title="предыдущий">⏮</button>
+            <button class="ctrl-btn play-pause" id="playPauseBtn">▶</button>
+            <button class="ctrl-btn" id="nextBtn" title="следующий">⏭</button>
+        </div>
+
+        <div class="progress-area">
+            <span class="time-current" id="currentTime">0:00</span>
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-filled" id="progressFilled"></div>
+            </div>
+            <span class="time-duration" id="duration">0:00</span>
+            <input type="range" id="volumeControl" class="volume-slider" min="0" max="1" step="0.01" value="0.8">
+            <span style="font-size:0.7rem;">🔊</span>
+        </div>
+    </div>
+
+    <!-- плейлисты (динамически создаются) -->
+    <div class="playlists-grid" id="playlistsContainer">
+        <div style="text-align:center; padding:40px;">⏳ загрузка плейлистов из папок...</div>
+    </div>
+    <footer>БизРадио · помести mp3 в папку /music и её подпапки — плеер подхватит автоматически</footer>
+</div>
+
+<script>
+    // ---------- БизРадио: динамическое сканирование папки /music (эмуляция через File System Access API + input directory) ----------
+    // Чтобы легко работать в браузере без сервера — реализуем выбор папки с музыкой.
+    // Пользователь один раз указывает корневую папку (где лежат папки с плейлистами).
+    // После выбора — все mp3 автоматически подхватываются, создаются категории.
+    // Это идеально для локального использования: скидываешь mp3 в папки, нажимаешь "обновить" / перевыбираешь папку.
+
+    let musicLibrary = [];   // { folder, name, path, fileHandle? , url }
+    let currentTrackIndex = -1;
+    let audio = new Audio();
+    let isPlaying = false;
+    let currentFolder = "";
+    
+    // DOM элементы
+    const currentTrackNameSpan = document.getElementById("currentTrackName");
+    const currentFolderSpan = document.getElementById("currentFolderName");
+    const playPauseBtn = document.getElementById("playPauseBtn");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const progressBar = document.getElementById("progressBar");
+    const progressFilled = document.getElementById("progressFilled");
+    const currentTimeSpan = document.getElementById("currentTime");
+    const durationSpan = document.getElementById("duration");
+    const volumeControl = document.getElementById("volumeControl");
+    const playlistsContainer = document.getElementById("playlistsContainer");
+    const statusSpan = document.getElementById("statusMessage");
+    
+    let currentDirectoryHandle = null;
+    
+    // функция для форматирования времени
+    function formatTime(seconds) {
+        if(isNaN(seconds)) return "0:00";
+        let mins = Math.floor(seconds / 60);
+        let secs = Math.floor(seconds % 60);
+        return `${mins}:${secs < 10 ? '0'+secs : secs}`;
+    }
+    
+    // обновление UI плеера
+    function updatePlayerUI() {
+        if(currentTrackIndex >= 0 && musicLibrary[currentTrackIndex]) {
+            let track = musicLibrary[currentTrackIndex];
+            currentTrackNameSpan.innerText = track.name.replace(/\.mp3$/i, '');
+            currentFolderSpan.innerText = track.folder;
+        } else {
+            currentTrackNameSpan.innerText = "—";
+            currentFolderSpan.innerText = "нет трека";
+        }
+        if(isPlaying) playPauseBtn.innerHTML = "⏸";
+        else playPauseBtn.innerHTML = "▶";
+    }
+    
+    function loadTrack(index) {
+        if(index < 0 || index >= musicLibrary.length) return;
+        let track = musicLibrary[index];
+        if(!track || !track.url) return;
+        audio.src = track.url;
+        audio.load();
+        currentTrackIndex = index;
+        isPlaying = true;
+        audio.play().catch(e => console.warn("автоплей заблокирован", e));
+        updatePlayerUI();
+    }
+    
+    function playTrack(index) {
+        loadTrack(index);
+    }
+    
+    function nextTrack() {
+        if(musicLibrary.length === 0) return;
+        let newIndex = (currentTrackIndex + 1) % musicLibrary.length;
+        loadTrack(newIndex);
+    }
+    
+    function prevTrack() {
+        if(musicLibrary.length === 0) return;
+        let newIndex = (currentTrackIndex - 1 + musicLibrary.length) % musicLibrary.length;
+        loadTrack(newIndex);
+    }
+    
+    // рендер плейлистов (группировка по папкам)
+    function renderPlaylists() {
+        if(!playlistsContainer) return;
+        const foldersMap = new Map(); // folder -> tracks[]
+        musicLibrary.forEach(track => {
+            if(!foldersMap.has(track.folder)) foldersMap.set(track.folder, []);
+            foldersMap.get(track.folder).push(track);
+        });
+        
+        if(foldersMap.size === 0) {
+            playlistsContainer.innerHTML = `<div style="background:#0f1825; border-radius:32px; padding:40px; text-align:center;">
+                🎵 Нет музыки. Выберите папку с MP3 (кнопка ниже) <br>
+                <button id="selectRootFolderBtn" style="margin-top:20px; background:#2f6b9e; padding:12px 24px;">📁 Выбрать папку /music</button>
+            </div>`;
+            const btn = document.getElementById("selectRootFolderBtn");
+            if(btn) btn.onclick = () => selectMusicFolder();
+            return;
+        }
+        
+        let html = '';
+        for(let [folder, tracks] of foldersMap.entries()) {
+            html += `<div class="playlist-category">
+                <div class="category-header">
+                    <div class="category-name">📁 ${folder}</div>
+                    <div class="track-count">${tracks.length} треков</div>
+                    <button class="refresh-btn play-folder-btn" data-folder="${folder}">▶ играть все</button>
+                </div>
+                <div class="track-list">`;
+            tracks.forEach((track, idx) => {
+                let displayName = track.name.replace(/\.mp3$/i, '').replace(/_/g, ' ');
+                html += `<div class="track-item" data-folder="${folder}" data-trackindex="${musicLibrary.indexOf(track)}">
+                    <span class="track-title">🎵 ${displayName}</span>
+                    <span class="track-meta">mp3</span>
+                </div>`;
+            });
+            html += `</div></div>`;
+        }
+        playlistsContainer.innerHTML = html;
+        
+        // добавление событий клика по треку
+        document.querySelectorAll('.track-item').forEach(el => {
+            el.addEventListener('click', (e) => {
+                const idx = parseInt(el.getAttribute('data-trackindex'));
+                if(!isNaN(idx)) playTrack(idx);
+            });
+        });
+        // кнопки "играть все" для папки
+        document.querySelectorAll('.play-folder-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const folderName = btn.getAttribute('data-folder');
+                const firstTrack = musicLibrary.find(t => t.folder === folderName);
+                if(firstTrack) playTrack(musicLibrary.indexOf(firstTrack));
+            });
+        });
+    }
+    
+    // функция для рекурсивного обхода папки и получения mp3 (File System Access API)
+    async function selectMusicFolder() {
+        try {
+            if(!window.showDirectoryPicker) {
+                statusSpan.innerHTML = "⚠️ Ваш браузер не поддерживает выбор папки. Используйте Chrome / Edge / Opera. Файлы нужно загружать вручную через input.";
+                alert("Для работы требуется Chrome / Edge / Opera и современная версия. Можно загрузить файлы через стандартный input множественного выбора.");
+                fallbackFileUpload();
+                return;
+            }
+            const dirHandle = await window.showDirectoryPicker();
+            currentDirectoryHandle = dirHandle;
+            statusSpan.innerHTML = `📁 Обработка папки: ${dirHandle.name} ...`;
+            musicLibrary = [];
+            await scanDirectory(dirHandle, dirHandle.name);
+            statusSpan.innerHTML = `✅ Загружено ${musicLibrary.length} треков из папки ${dirHandle.name}`;
+            if(musicLibrary.length > 0) {
+                renderPlaylists();
+                if(currentTrackIndex === -1) loadTrack(0);
+            } else {
+                renderPlaylists();
+            }
+        } catch(err) {
+            console.error(err);
+            statusSpan.innerHTML = "❌ Не выбрана папка или ошибка доступа";
+            fallbackFileUpload();
+        }
+    }
+    
+    async function scanDirectory(dirHandle, relativePath) {
+        for await (const entry of dirHandle.values()) {
+            if(entry.kind === 'file' && entry.name.toLowerCase().endsWith('.mp3')) {
+                const file = await entry.getFile();
+                const url = URL.createObjectURL(file);
+                musicLibrary.push({
+                    folder: relativePath,
+                    name: entry.name,
+                    path: entry.name,
+                    url: url,
+                    fileHandle: entry
+                });
+            } else if(entry.kind === 'directory') {
+                await scanDirectory(entry, `${relativePath}/${entry.name}`);
+            }
+        }
+    }
+    
+    // fallback: если браузер не поддерживает выбор папки, предложим загрузить несколько mp3 файлов (группировка по папкам эмуляция)
+    function fallbackFileUpload() {
+        let input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'audio/mpeg';
+        input.multiple = true;
+        input.webkitdirectory = false;
+        input.onchange = (e) => {
+            const files = Array.from(e.target.files);
+            if(files.length === 0) return;
+            musicLibrary = [];
+            files.forEach(file => {
+                if(file.name.toLowerCase().endsWith('.mp3')) {
+                    const url = URL.createObjectURL(file);
+                    musicLibrary.push({
+                        folder: "Загруженные",
+                        name: file.name,
+                        url: url,
+                    });
+                }
+            });
+            statusSpan.innerHTML = `🎧 Загружено ${musicLibrary.length} MP3 (произвольные)`;
+            renderPlaylists();
+            if(musicLibrary.length) loadTrack(0);
+        };
+        input.click();
+    }
+    
+    // инициализация плеера
+    function initAudioPlayer() {
+        audio.volume = volumeControl.value;
+        volumeControl.addEventListener('input', (e) => { audio.volume = e.target.value; });
+        
+        audio.addEventListener('timeupdate', () => {
+            if(audio.duration) {
+                let percent = (audio.currentTime / audio.duration) * 100;
+                progressFilled.style.width = `${percent}%`;
+                currentTimeSpan.innerText = formatTime(audio.currentTime);
+            }
+        });
+        audio.addEventListener('loadedmetadata', () => {
+            durationSpan.innerText = formatTime(audio.duration);
+        });
+        audio.addEventListener('ended', () => {
+            nextTrack();
+        });
+        audio.addEventListener('play', () => { isPlaying = true; updatePlayerUI(); });
+        audio.addEventListener('pause', () => { isPlaying = false; updatePlayerUI(); });
+        
+        playPauseBtn.addEventListener('click', () => {
+            if(musicLibrary.length === 0) return;
+            if(isPlaying) {
+                audio.pause();
+            } else {
+                if(audio.src) audio.play();
+                else if(currentTrackIndex === -1 && musicLibrary.length) loadTrack(0);
+                else if(currentTrackIndex !== -1) audio.play();
+            }
+        });
+        nextBtn.addEventListener('click', () => nextTrack());
+        prevBtn.addEventListener('click', () => prevTrack());
+        
+        progressBar.addEventListener('click', (e) => {
+            if(audio.duration) {
+                const rect = progressBar.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                audio.currentTime = percent * audio.duration;
+            }
+        });
+    }
+    
+    // кнопка для выбора папки внизу, если плейлистов нет
+    function addSelectFolderFloating() {
+        const btn = document.createElement('button');
+        btn.innerText = "📁 Выбрать корневую папку с музыкой (папки с mp3)";
+        btn.style.position = 'fixed';
+        btn.style.bottom = '20px';
+        btn.style.right = '20px';
+        btn.style.background = '#1f4a6e';
+        btn.style.color = 'white';
+        btn.style.padding = '12px 20px';
+        btn.style.borderRadius = '40px';
+        btn.style.border = 'none';
+        btn.style.zIndex = '999';
+        btn.style.cursor = 'pointer';
+        btn.style.fontWeight = 'bold';
+        btn.onclick = () => selectMusicFolder();
+        document.body.appendChild(btn);
+    }
+    
+    initAudioPlayer();
+    addSelectFolderFloating();
+    setTimeout(() => {
+        if(musicLibrary.length === 0) {
+            statusSpan.innerHTML = "🎵 Нажмите кнопку справа внизу, чтобы выбрать папку с музыкой (вложенные папки = плейлисты)";
+        }
+    }, 500);
+</script>
+</body>
+</html>
